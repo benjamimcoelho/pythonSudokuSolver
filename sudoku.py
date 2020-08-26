@@ -1,3 +1,5 @@
+import sys
+sys.setrecursionlimit(1000)
 
 
 def print_board(board):
@@ -29,38 +31,38 @@ def check_column(board, y, number):
                         return False
         return True
 
-def get_square_center(x, y):
+def get_square_corner(x, y):
 
         if x > 5:
                 if y > 5:
-                        return [7, 7]
+                        return [6, 6]
                 elif y > 2:
-                        return [7, 4]
+                        return [6, 3]
                 else:
-                        return [7, 1]
+                        return [6, 0]
         elif x > 2:
                 if y > 5:
-                        return [4, 7]
+                        return [3, 6]
                 elif y > 2:
-                        return [4, 4]
+                        return [3, 3]
                 else:
-                        return [4, 1]
+                        return [3, 0]
         else:
                 if y > 5:
-                        return [1, 7]
+                        return [0, 6]
                 elif y > 2:
-                        return [1, 4]
+                        return [0, 3]
                 else:
-                        return [1, 1]
+                        return [0, 0]
 
 
 def check_square(board, x, y, number):
-        square_center = get_square_center(x, y)
+        square_corner = get_square_corner(x, y)
 
         # coordenada x do canto superior esquerdo desse quadrado
-        m = square_center[0] - 1
+        m = square_corner[0]
         # coordenada y do canto superior esquerdo desse quadrado
-        n = square_center[1] - 1
+        n = square_corner[1]
 
         g = m + 3
         h = n + 3
@@ -76,55 +78,54 @@ def is_pos_valid(board, x, y, number, invalid_positions):
                 return False
         elif number < 1 or number > 9 or x < 0 or y < 0 or x > 8 or y > 8:
                 return False
-        elif board[x][y] != 0:
-                return False
         elif check_row(board, x, number) and check_column(board, y, number):
                 if check_square(board, x, y, number):
                         return True
         return False
 
 
+def no_empty_spaces(board):
+        for i in board:
+                for j in i:
+                        if j == 0:
+                                return False
+        return True
+
+
 def backtracking_solver(x, y, board, invalid_positions):
-        found_solution = False
-        if x < 0 or x > 8 or y < 0 or y > 8:
+        if no_empty_spaces(board):
                 return 1
-
-        while([x, y] in invalid_positions):
+        solution = -1
+        i = 0
+        if [x, y] in invalid_positions:
                 if y == 8:
-                        y = 0
-                        x += 1
+                        return backtracking_solver(x + 1, 0, board, invalid_positions)
                 else:
-                        y += 1
-
-        if board[x][y] == 0:
-                for u in range(1, 10):
-                        if is_pos_valid(board, x, y, u, invalid_positions):
-                                board[x][y] = u
-                                found_solution = True
-                                break
+                        return backtracking_solver(x, y + 1, board, invalid_positions)
         else:
-                for u in range(board[x][y], 10):
-                        if is_pos_valid(board, x, y, u, invalid_positions):
-                                board[x][y] = u
-                                found_solution = True
-                                break
+                while(solution == -1 and i < 10):
+                        i += 1
+                        if is_pos_valid(board, x, y, i, invalid_positions):
 
-        if found_solution == True:
-                if y == 8:
-                        backtracking_solver(x + 1, 0, board, invalid_positions)
-                else:
-                        backtracking_solver(x, y + 1, board, invalid_positions)
-        else:
-                if y == 0:
-                        backtracking_solver(x - 1, 8, board, invalid_positions)
-                else:
-                        backtracking_solver(x, y - 1, board, invalid_positions)
-        return 1
+                                board[x][y] = i
+                                if y == 8:
+                                        solution = backtracking_solver(
+                                            x + 1, 0, board, invalid_positions)
+                                else:
+                                        solution = backtracking_solver(
+                                            x, y + 1, board, invalid_positions)
+                        if solution == -1:
+                                board[x][y] = 0
+
+        return solution
 
 def main():
 
         board = [[0, 0, 1, 2, 0, 7, 0, 0, 0], [0, 6, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 9, 4, 0], [0, 0, 0, 9, 8, 0, 0, 0, 3], [
             5, 0, 0, 0, 0, 0, 0, 0, 0], [7, 0, 0, 0, 3, 0, 0, 2, 1], [0, 0, 0, 1, 0, 2, 0, 0, 0], [0, 7, 0, 8, 0, 0, 4, 1, 0], [3, 0, 4, 0, 0, 0, 0, 8, 0]]
+
+        easy_board = [[0, 0, 0, 1, 9, 0, 8, 7, 6], [0, 1, 8, 0, 0, 0, 0, 0, 0], [6, 0, 4, 3, 5, 0, 0, 0, 0], [0, 0, 0, 0, 3, 7, 9, 0, 0], [
+            4, 8, 3, 0, 0, 0, 2, 0, 7], [0, 0, 0, 2, 0, 6, 3, 0, 5], [2, 3, 6, 7, 8, 0, 0, 9, 0], [0, 5, 0, 4, 0, 0, 0, 1, 0], [0, 0, 0, 5, 0, 0, 0, 3, 2]]
 
         invalid_positions = []
         for i in range(9):
