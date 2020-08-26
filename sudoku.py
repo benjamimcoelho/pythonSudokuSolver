@@ -25,7 +25,7 @@ def check_row(board, x, number):
 
 def check_column(board, y, number):
         for i in board:
-                if board[y] == number:
+                if i[y] == number:
                         return False
         return True
 
@@ -71,8 +71,10 @@ def check_square(board, x, y, number):
         return True
 
 
-def is_pos_valid(board, x, y, number):
-        if number < 1 or number > 9 or x < 0 or y < 0 or x > 8 or y > 8:
+def is_pos_valid(board, x, y, number, invalid_positions):
+        if [x, y] in invalid_positions:
+                return False
+        elif number < 1 or number > 9 or x < 0 or y < 0 or x > 8 or y > 8:
                 return False
         elif board[x][y] != 0:
                 return False
@@ -81,14 +83,59 @@ def is_pos_valid(board, x, y, number):
                         return True
         return False
 
+
+def backtracking_solver(x, y, board, invalid_positions):
+        found_solution = False
+        if x < 0 or x > 8 or y < 0 or y > 8:
+                return 1
+
+        while([x, y] in invalid_positions):
+                if y == 8:
+                        y = 0
+                        x += 1
+                else:
+                        y += 1
+
+        if board[x][y] == 0:
+                for u in range(1, 10):
+                        if is_pos_valid(board, x, y, u, invalid_positions):
+                                board[x][y] = u
+                                found_solution = True
+                                break
+        else:
+                for u in range(board[x][y], 10):
+                        if is_pos_valid(board, x, y, u, invalid_positions):
+                                board[x][y] = u
+                                found_solution = True
+                                break
+
+        if found_solution == True:
+                if y == 8:
+                        backtracking_solver(x + 1, 0, board, invalid_positions)
+                else:
+                        backtracking_solver(x, y + 1, board, invalid_positions)
+        else:
+                if y == 0:
+                        backtracking_solver(x - 1, 8, board, invalid_positions)
+                else:
+                        backtracking_solver(x, y - 1, board, invalid_positions)
+        return 1
+
 def main():
 
         board = [[0, 0, 1, 2, 0, 7, 0, 0, 0], [0, 6, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 9, 4, 0], [0, 0, 0, 9, 8, 0, 0, 0, 3], [
             5, 0, 0, 0, 0, 0, 0, 0, 0], [7, 0, 0, 0, 3, 0, 0, 2, 1], [0, 0, 0, 1, 0, 2, 0, 0, 0], [0, 7, 0, 8, 0, 0, 4, 1, 0], [3, 0, 4, 0, 0, 0, 0, 8, 0]]
 
+        invalid_positions = []
+        for i in range(9):
+                for j in range(9):
+                        if board[i][j] != 0:
+                                invalid_positions.append([i, j])
+
         print_board(board)
 
-        print(is_pos_valid(board, 0, 0, 1))
+        backtracking_solver(0, 0, board, invalid_positions)
+        print_board(board)
 
 
 main()
